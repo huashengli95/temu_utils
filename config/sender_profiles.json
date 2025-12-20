@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Warehouse CA-1",
+    "phone": "416-555-0101",
+    "address": "1234 Finch Ave W",
+    "zip": "M3J 2X2",
+    "city": "Toronto",
+    "state": "ON",
+    "country": "Canada",
+    "email": "shipper1Jay@gmail.com"
+  },
+  {
+    "name": "Warehouse CA-2",
+    "phone": "604-555-0188",
+    "address": "5678 Kingsway",
+    "zip": "V5H 2A9",
+    "city": "Burnaby",
+    "state": "BC",
+    "country": "Canada",
+    "email": "shipper2Karl@gmail.com"
+  },
+  {
+    "name": "Warehouse CA-3",
+    "phone": "514-555-0222",
+    "address": "910 Rue Sainte-Catherine",
+    "zip": "H3B 1E2",
+    "city": "Montreal",
+    "state": "QC",
+    "country": "Canada",
+    "email": "shipper3Bob@gmail.com"
+  }
+]

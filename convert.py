@@ -8,147 +8,19 @@ from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from pathlib import Path
+import json
 
-SENDER_PROFILES = [
-    {
-        "name": "Warehouse CA-1",
-        "phone": "416-555-0101",
-        "address": "1234 Finch Ave W",
-        "zip": "M3J 2X2",
-        "city": "Toronto",
-        "state": "ON",
-        "country": "Canada",
-        "email": "shipper1Jay@gmail.com"
-    },
-    {
-        "name": "Warehouse CA-2",
-        "phone": "604-555-0188",
-        "address": "5678 Kingsway",
-        "zip": "V5H 2A9",
-        "city": "Burnaby",
-        "state": "BC",
-        "country": "Canada",
-        "email": "shipper2Karl@gmail.com"
-    },
-    {
-        "name": "Warehouse CA-3",
-        "phone": "514-555-0222",
-        "address": "910 Rue Sainte-Catherine",
-        "zip": "H3B 1E2",
-        "city": "Montreal",
-        "state": "QC",
-        "country": "Canada",
-        "email": "shipper3Bob@gmail.com"
-    }
-]
+# Load settings from ./config
 
-SKU_PACKAGE_SPECS = {
-    "G300": {
-        "weight": 0.3,      # KG
-        "length": 20,       # cm
-        "width": 15,
-        "height": 3,
-        "package_count": 1
-    },
-    "G600": {
-        "weight": 0.6,      # KG
-        "length": 20,       # cm
-        "width": 15,
-        "height": 6,
-        "package_count": 1
-    }, 
-    "G900": {
-        "weight": 0.9,      # KG
-        "length": 25,       # cm
-        "width": 20,
-        "height": 6,
-        "package_count": 1
-    },
-    "G1200": {
-        "weight": 1.2,      # KG
-        "length": 25,       # cm
-        "width": 20,
-        "height": 10,
-        "package_count": 1
-    },
-    "STB": {
-        "weight": 0.6,
-        "length": 20,
-        "width": 18,
-        "height": 5,
-        "package_count": 1
-    },
-    "SVB": {
-        "weight": 0.4,
-        "length": 25,
-        "width": 20,
-        "height": 3,
-        "package_count": 1
-    },
-    "MVB": {
-        "weight": 0.7,
-        "length": 30,
-        "width": 12,
-        "height": 3,
-        "package_count": 1
-    },
-    "LVB": {
-        "weight": 1.2,
-        "length": 35,
-        "width": 13,
-        "height": 5,
-        "package_count": 1
-    },
-    "LTB": {
-        "weight": 0.8,
-        "length": 25,
-        "width": 12,
-        "height": 6,
-        "package_count": 1
-    },
-    "DLTB": {
-        "weight": 1.6,
-        "length": 25,
-        "width": 25,
-        "height": 6,
-        "package_count": 1
-    },
-    "RCB2": {
-        "weight": 0.3,
-        "length": 25,
-        "width": 20,
-        "height": 3,
-        "package_count": 1
-    },
-    "RCW2": {
-        "weight": 0.3,
-        "length": 25,
-        "width": 20,
-        "height": 3,
-        "package_count": 1
-    },
-    "RCG2": {
-        "weight": 0.3,
-        "length": 25,
-        "width": 20,
-        "height": 3,
-        "package_count": 1
-    },
-    "CTB": {
-        "weight": 0.3,
-        "length": 25,
-        "width": 20,
-        "height": 3,
-        "package_count": 1
-    },
-    "RB1": {
-        "weight": 1,
-        "length": 35,
-        "width": 7,
-        "height": 7,
-        "package_count": 1
-    }
-}
+def _load_json_config(filename):
+    base_dir = Path(__file__).resolve().parent
+    config_file = base_dir / "config" / filename
+    with open(config_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+SENDER_PROFILES = _load_json_config("sender_profiles.json")
+SKU_PACKAGE_SPECS = _load_json_config("sku_package_specs.json")
+
 
 def merge_skus_with_qty(group):
     """
@@ -184,7 +56,7 @@ def build_output_filename(shipitem_count, ext=".xlsx"):
     生成: YYYYMMDD_<count>.xlsx
     """
     date_str = datetime.now().strftime("%Y%m%d")
-    return f"{date_str}_{shipitem_count}{ext}"
+    return f"{date_str}_{shipitem_count}_合并{ext}"
 
 def copy_template_with_custom_name(template_path, target_dir, shipitem_count):
     """
@@ -201,11 +73,8 @@ def create_timestamp_dir(base_dir="output"):
     创建 output/YYYYMMDD_HHMM 目录
     返回创建好的目录路径
     """
-    ts = datetime.now().strftime("%Y%m%d_%H%M")
-    target_dir = os.path.join(base_dir, ts)
-
-    os.makedirs(target_dir, exist_ok=True)
-    return target_dir
+    os.makedirs(base_dir, exist_ok=True)
+    return base_dir
 
 def copy_template_to_dir(template_path, target_dir):
     """
