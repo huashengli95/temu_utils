@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+from pathlib import Path
 
 SENDER_PROFILES = [
     {
@@ -53,98 +54,98 @@ SKU_PACKAGE_SPECS = {
         "weight": 0.6,      # KG
         "length": 20,       # cm
         "width": 15,
-        "height": 3,
+        "height": 6,
         "package_count": 1
     }, 
     "G900": {
         "weight": 0.9,      # KG
         "length": 25,       # cm
         "width": 20,
-        "height": 4,
+        "height": 6,
         "package_count": 1
     },
     "G1200": {
         "weight": 1.2,      # KG
         "length": 25,       # cm
         "width": 20,
-        "height": 6,
+        "height": 10,
         "package_count": 1
     },
     "STB": {
-        "weight": 1,
-        "length": 25,
-        "width": 15,
-        "height": 3,
+        "weight": 0.6,
+        "length": 20,
+        "width": 18,
+        "height": 5,
         "package_count": 1
     },
     "SVB": {
-        "weight": 0.5,
-        "length": 20,
-        "width": 15,
+        "weight": 0.4,
+        "length": 25,
+        "width": 20,
         "height": 3,
         "package_count": 1
     },
     "MVB": {
-        "weight": 0.75,
-        "length": 25,
-        "width": 15,
+        "weight": 0.7,
+        "length": 30,
+        "width": 12,
         "height": 3,
         "package_count": 1
     },
     "LVB": {
-        "weight": 1.3,
+        "weight": 1.2,
         "length": 35,
-        "width": 15,
-        "height": 3,
+        "width": 13,
+        "height": 5,
         "package_count": 1
     },
     "LTB": {
         "weight": 0.8,
         "length": 25,
-        "width": 15,
-        "height": 3,
+        "width": 12,
+        "height": 6,
         "package_count": 1
     },
     "DLTB": {
         "weight": 1.6,
         "length": 25,
         "width": 25,
-        "height": 3,
+        "height": 6,
         "package_count": 1
     },
     "RCB2": {
-        "weight": 1,
+        "weight": 0.3,
         "length": 25,
-        "width": 15,
+        "width": 20,
         "height": 3,
         "package_count": 1
     },
     "RCW2": {
-        "weight": 1,
+        "weight": 0.3,
         "length": 25,
-        "width": 15,
+        "width": 20,
         "height": 3,
         "package_count": 1
     },
     "RCG2": {
-        "weight": 1,
+        "weight": 0.3,
         "length": 25,
-        "width": 15,
+        "width": 20,
         "height": 3,
         "package_count": 1
     },
     "CTB": {
         "weight": 0.3,
-        "length": 20,
-        "width": 15,
+        "length": 25,
+        "width": 20,
         "height": 3,
         "package_count": 1
     },
     "RB1": {
         "weight": 1,
         "length": 35,
-        "width": 4,
-        "height": 4,
+        "width": 7,
+        "height": 7,
         "package_count": 1
     }
 }
@@ -392,7 +393,8 @@ class ShipItem:
         }
 
 # 1. 读取模板 Excel
-template_excel = sys.argv[2]
+BASE_DIR = Path(__file__).resolve().parent
+template_excel = BASE_DIR / "fedexTemplate.xlsx"
 clear_template_except_header(template_excel)
 
 # 2. 读取原始 Excel
