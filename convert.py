@@ -20,6 +20,7 @@ def _load_json_config(filename):
 
 SENDER_PROFILES = _load_json_config("sender_profiles.json")
 SKU_PACKAGE_SPECS = _load_json_config("sku_package_specs.json")
+#SKU_PACKAGE_SPECS = _load_json_config("sku_package_specs_inch.json")
 
 
 def merge_skus_with_qty(group):

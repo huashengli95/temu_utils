@@ -14,7 +14,7 @@ def load_shipping_orders(shipping_excel_path: str):
         dtype=str
     )
 
-    df["订单号"] = df["订单号"].str.strip()
-    df["跟踪单号"] = df["跟踪单号"].str.strip()
+    df["订单号"] = df["客户单号"].str.strip()
+    df["跟踪单号"] = df["快递单号"].str.strip()
 
     return dict(zip(df["订单号"], df["跟踪单号"]))
