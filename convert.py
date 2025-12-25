@@ -11,6 +11,23 @@ from pathlib import Path
 import json
 
 # Load settings from ./config
+STATE_MAP = {
+    "NL": "NF",
+    "QC": "PQ",
+}
+
+def normalize_state_for_new_template(state):
+    if not state:
+        return ""
+
+    s = str(state).strip().upper()
+    return STATE_MAP.get(s, s)
+def clean_temu_phone(phone):
+    if not phone:
+        return ""
+
+    s = str(phone).strip()
+    return s.split("-", 1)[0]
 
 def _load_json_config(filename):
     base_dir = Path(__file__).resolve().parent
@@ -138,7 +155,7 @@ def clear_template_except_header(template_path, sheet_name=None):
 
     wb.save(template_path)
 
-def fill_template(template_path, ship_items, sheet_name=None):
+def fill_template(template_path, ship_items, dict_builder, sheet_name=None):
     wb = load_workbook(template_path)
     ws = wb[sheet_name] if sheet_name else wb.active
 
@@ -147,12 +164,11 @@ def fill_template(template_path, ship_items, sheet_name=None):
 
     start_row = 2
     for row_idx, item in enumerate(ship_items, start=start_row):
-        item_dict = item.to_dict()
+        item_dict = dict_builder(item)
 
         for col_idx, header in enumerate(headers, start=1):
             cell = ws.cell(row=row_idx, column=col_idx, value=item_dict.get(header, ""))
 
-            # ⭐ 整行标绿
             if item.need_highlight:
                 cell.fill = green_fill
 
@@ -261,10 +277,47 @@ class ShipItem:
             "宽/厘米": self.package_spec.width,
             "高/厘米": self.package_spec.height
         }
+    
+    def to_fedex_dict(self):
+        return {
+            "serviceType": "",
+            "shipmentType": "OUTBOUND",
+
+            "senderContactName": self.sender["name"],
+            "senderContactNumber": clean_temu_phone(self.sender["phone"]),
+            "senderLine1": self.sender["address"],
+            "senderPostcode": self.sender["zip"],
+            "senderCity": self.sender["city"],
+            "senderState": normalize_state_for_new_template(self.sender["state"]),
+            "senderCountry": self.sender["country"],
+            "senderEmail": self.sender["email"],
+
+            "recipientContactName": self.receiver_name,
+            "recipientContactNumber": clean_temu_phone(self.receiver_phone),
+            "recipientLine1": self.receiver_address,
+            "recipientLine2": "",
+            "recipientPostcode": self.receiver_zip,
+            "recipientCity": self.receiver_city,
+            "recipientState": normalize_state_for_new_template(self.receiver_state),
+            "recipientCountry": "CA",
+
+            "numberOfPackages": self.package_spec.package_count,
+            "packageWeight": self.package_spec.weight,
+            "weightUnits": "KG",
+
+            "length": self.package_spec.length,
+            "width": self.package_spec.width,
+            "height": self.package_spec.height,
+
+            "packageType": "YOUR_PACKAGING",
+            "currencyType": "CAD",
+            "Package contents": self.sku,
+        }
 
 # 1. 读取模板 Excel
 BASE_DIR = Path(__file__).resolve().parent
 template_excel = BASE_DIR / "fedexTemplate.xlsx"
+fedex_template_excel = BASE_DIR / "newShipmentTemplate.xlsx"
 clear_template_except_header(template_excel)
 
 # 2. 读取原始 Excel
@@ -302,12 +355,35 @@ for order_no, group in df.groupby("订单号"):
     ship_items.append(item)
 
 output_dir = create_timestamp_dir("output")
+
+###### 旧模板 #########
 output_template = copy_template_with_custom_name(
     template_excel,
     output_dir,
     shipitem_count=len(ship_items)
 )
+
 clear_template_except_header(output_template)
-fill_template(output_template, ship_items)
+
+fill_template(output_template, 
+              ship_items, 
+              dict_builder=lambda item: item.to_dict()
+)
+
+
+####### 新模板 #########
+# new_output_template = copy_template_with_custom_name(
+#     fedex_template_excel,
+#     output_dir,
+#     shipitem_count=len(ship_items)
+# )
+
+# clear_template_except_header(fedex_template_excel)
+
+# fill_template(
+#     fedex_template_excel,
+#     ship_items,
+#     dict_builder=lambda item: item.to_fedex_dict()
+# )
 
 print("模板已成功更新并覆盖旧数据")
