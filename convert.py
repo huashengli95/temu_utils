@@ -284,12 +284,12 @@ class ShipItem:
             "shipmentType": "OUTBOUND",
 
             "senderContactName": self.sender["name"],
-            "senderContactNumber": clean_temu_phone(self.sender["phone"]),
+            "senderContactNumber": self.sender["phone"],
             "senderLine1": self.sender["address"],
             "senderPostcode": self.sender["zip"],
             "senderCity": self.sender["city"],
             "senderState": normalize_state_for_new_template(self.sender["state"]),
-            "senderCountry": self.sender["country"],
+            "senderCountry": "CA",
             "senderEmail": self.sender["email"],
 
             "recipientContactName": self.receiver_name,
@@ -303,7 +303,7 @@ class ShipItem:
 
             "numberOfPackages": self.package_spec.package_count,
             "packageWeight": self.package_spec.weight,
-            "weightUnits": "KG",
+            "weightUnits": "KGS",
 
             "length": self.package_spec.length,
             "width": self.package_spec.width,
