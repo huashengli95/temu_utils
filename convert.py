@@ -69,18 +69,18 @@ def merge_skus_with_qty(group):
 
     return ", ".join(parts), need_highlight
 
-def build_output_filename(shipitem_count, ext=".xlsx"):
+def build_output_filename(shipitem_count, type, ext=".xlsx"):
     """
     生成: YYYYMMDD_<count>.xlsx
     """
     date_str = datetime.now().strftime("%Y%m%d")
-    return f"{date_str}_{shipitem_count}_合并{ext}"
+    return f"{date_str}_{shipitem_count}_{type}{ext}"
 
-def copy_template_with_custom_name(template_path, target_dir, shipitem_count):
+def copy_template_with_custom_name(template_path, target_dir, shipitem_count, type):
     """
     拷贝模板到目录，并按规则重命名
     """
-    new_filename = build_output_filename(shipitem_count)
+    new_filename = build_output_filename(shipitem_count, type)
     target_path = os.path.join(target_dir, new_filename)
 
     shutil.copy2(template_path, target_path)
@@ -357,33 +357,35 @@ for order_no, group in df.groupby("订单号"):
 output_dir = create_timestamp_dir("output")
 
 ###### 旧模板 #########
-output_template = copy_template_with_custom_name(
+to_agent_output_template = copy_template_with_custom_name(
     template_excel,
     output_dir,
-    shipitem_count=len(ship_items)
+    shipitem_count=len(ship_items),
+    type="to_agent"
 )
 
-clear_template_except_header(output_template)
+clear_template_except_header(to_agent_output_template)
 
-fill_template(output_template, 
+fill_template(to_agent_output_template, 
               ship_items, 
               dict_builder=lambda item: item.to_dict()
 )
 
 
 ####### 新模板 #########
-# new_output_template = copy_template_with_custom_name(
-#     fedex_template_excel,
-#     output_dir,
-#     shipitem_count=len(ship_items)
-# )
+to_fedex_output_template = copy_template_with_custom_name(
+    fedex_template_excel,
+    output_dir,
+    shipitem_count=len(ship_items),
+    type="to_fedex"
+)
 
-# clear_template_except_header(fedex_template_excel)
+clear_template_except_header(to_fedex_output_template)
 
-# fill_template(
-#     fedex_template_excel,
-#     ship_items,
-#     dict_builder=lambda item: item.to_fedex_dict()
-# )
+fill_template(
+    to_fedex_output_template,
+    ship_items,
+    dict_builder=lambda item: item.to_fedex_dict()
+)
 
 print("模板已成功更新并覆盖旧数据")
