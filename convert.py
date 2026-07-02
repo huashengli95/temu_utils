@@ -18,11 +18,11 @@ STATE_MAP = {
 }
 
 # 渠道代码和业务线路配置
-CHANNEL_CODE = "2016,5081,1252381,7323"
+CHANNEL_CODES = ["1252", "1253", "0106", "6064"]
 BUSINESS_ROUTES = ["CA", "CA-PURO", "AUS"]
 DEFAULT_BUSINESS_ROUTE = "CA"
-DEFAULT_CARRIER_TYPE = "1"  # 承运商/模版类型
-DEFAULT_SUB_TEMPLATE_TYPE = "1"  # 子模版类型
+DEFAULT_CARRIER_TYPE = 1  # 承运商/模版类型
+DEFAULT_SUB_TEMPLATE_TYPE = 1  # 子模版类型
 
 def normalize_state_for_new_template(state):
     if not state:
@@ -145,7 +145,7 @@ def merge_address(*parts, sep=", "):
         if not s:
             continue
 
-        # 4. 仅由 '-' 组成的占位符（-, --, --- 等）
+        # 4. 仅由 '-' 组���的占位符（-, --, --- 等）
         if re.fullmatch(r"-+", s):
             continue
 
@@ -254,7 +254,7 @@ class ShipItem:
         self.need_highlight = need_highlight
         
         # 新模板字段
-        self.channel_code = channel_code or CHANNEL_CODE
+        self.channel_code = channel_code or random.choice(CHANNEL_CODES)
         self.business_route = business_route or DEFAULT_BUSINESS_ROUTE
         self.sku_qty = sku_qty or 1  # 数量
 
@@ -339,8 +339,8 @@ class ShipItem:
             "订单号(必填)": self.customer_order,
             "渠道代码(必填)": self.channel_code,
             "业务线路(必填:CA/CA-PURO/CA-LIGHT等)": self.business_route,
-            "承运商/模版类型(CA填1-4; PURO填1-2; CA-LIGHT填1=CA,2=PURO,3=FEDEX)": DEFAULT_CARRIER_TYPE,
-            "子模版类型(仅CA-LIGHT选1或2时填,代表具体模板1-4或1-2)": DEFAULT_SUB_TEMPLATE_TYPE,
+            "承运商/模版类型(CA填1-4; PURO填1-2; CA-LIGHT填1=CA,2=PURO,3=FEDEX)": 1,
+            "子模版类型(仅CA-LIGHT选1或2时填,代表具体模板1-4或1-2)": 1,
             "SKU(必填)": self.sku,
             "数量(必填)": self.sku_qty,
             "包裹长cm(必填)": self.package_spec.length,
