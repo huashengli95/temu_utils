@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+from openpyxl.cell.cell import MergedCell
 from pathlib import Path
 import json
 
@@ -15,6 +16,13 @@ STATE_MAP = {
     "NL": "NF",
     "QC": "PQ",
 }
+
+# 渠道代码和业务线路配置
+CHANNEL_CODE = "2016,5081,1252381,7323"
+BUSINESS_ROUTES = ["CA", "CA-PURO", "AUS"]
+DEFAULT_BUSINESS_ROUTE = "CA"
+DEFAULT_CARRIER_TYPE = "1"  # 承运商/模版类型
+DEFAULT_SUB_TEMPLATE_TYPE = "1"  # 子模版类型
 
 def normalize_state_for_new_template(state):
     if not state:
@@ -167,10 +175,13 @@ def fill_template(template_path, ship_items, dict_builder, sheet_name=None):
         item_dict = dict_builder(item)
 
         for col_idx, header in enumerate(headers, start=1):
-            cell = ws.cell(row=row_idx, column=col_idx, value=item_dict.get(header, ""))
-
-            if item.need_highlight:
-                cell.fill = green_fill
+            cell = ws.cell(row=row_idx, column=col_idx)
+            
+            # 检查是否是合并单元格，如果是则跳过
+            if not isinstance(cell, MergedCell):
+                cell.value = item_dict.get(header, "")
+                if item.need_highlight:
+                    cell.fill = green_fill
 
     wb.save(template_path)
 
@@ -227,7 +238,8 @@ class ShipItem:
     def __init__(self, customer_order, sku, tracking_number,
                  receiver_name, receiver_phone, receiver_address,
                  receiver_zip, receiver_city, receiver_state, receiver_country,
-                 need_highlight=False):
+                 need_highlight=False, channel_code=None, business_route=None,
+                 sku_qty=None):
         self.customer_order = customer_order
         self.sku = sku
         self.tracking_number = tracking_number
@@ -240,6 +252,11 @@ class ShipItem:
         self.receiver_state = receiver_state
         self.receiver_country = receiver_country
         self.need_highlight = need_highlight
+        
+        # 新模板字段
+        self.channel_code = channel_code or CHANNEL_CODE
+        self.business_route = business_route or DEFAULT_BUSINESS_ROUTE
+        self.sku_qty = sku_qty or 1  # 数量
 
         first_sku = sku.split(",")[0].strip()
         self.package_spec = get_package_spec_by_sku(first_sku)
@@ -313,6 +330,40 @@ class ShipItem:
             "currencyType": "CAD",
             "Package contents": self.sku,
         }
+    
+    def to_xiaolong_dict(self):
+        """
+        生成 xiaolong_template.xlsx 格式的数据
+        """
+        return {
+            "订单号(必填)": self.customer_order,
+            "渠道代码(必填)": self.channel_code,
+            "业务线路(必填:CA/CA-PURO/CA-LIGHT等)": self.business_route,
+            "承运商/模版类型(CA填1-4; PURO填1-2; CA-LIGHT填1=CA,2=PURO,3=FEDEX)": DEFAULT_CARRIER_TYPE,
+            "子模版类型(仅CA-LIGHT选1或2时填,代表具体模板1-4或1-2)": DEFAULT_SUB_TEMPLATE_TYPE,
+            "SKU(必填)": self.sku,
+            "数量(必填)": self.sku_qty,
+            "包裹长cm(必填)": self.package_spec.length,
+            "包裹宽cm(必填)": self.package_spec.width,
+            "包裹高cm(必填)": self.package_spec.height,
+            "重量kg(必填)": self.package_spec.weight,
+            "发件人-姓名(必填)": self.sender["name"],
+            "发件人-电话(必填)": self.sender["phone"],
+            "发件人-国家(必填)": self.sender["country"],
+            "发件人-地址1(必填)": self.sender["address"],
+            "发件人-地址2(选填)": "",
+            "发件人-城市(必填)": self.sender["city"],
+            "发件人-省份(必填)": normalize_state_for_new_template(self.sender["state"]),
+            "发件人-邮编(必填)": self.sender["zip"],
+            "收件人-姓名(必填)": self.receiver_name,
+            "收件人-电话(必填)": clean_temu_phone(self.receiver_phone),
+            "收件人-国家(地址用,必填)": "CA",
+            "收件人-地址1(必填)": self.receiver_address,
+            "收件人-地址2(选填)": "",
+            "收件人-城市(必填)": self.receiver_city,
+            "收件人-省份(必填)": normalize_state_for_new_template(self.receiver_state),
+            "收件人-邮编(必填)": self.receiver_zip,
+        }
 
 # 1. 读取模板 Excel
 BASE_DIR = Path(__file__).resolve().parent
@@ -356,36 +407,57 @@ for order_no, group in df.groupby("订单号"):
 
 output_dir = create_timestamp_dir("output")
 
-###### 旧模板 #########
-to_agent_output_template = copy_template_with_custom_name(
-    template_excel,
+# ###### 旧模板 #########
+# to_agent_output_template = copy_template_with_custom_name(
+#     template_excel,
+#     output_dir,
+#     shipitem_count=len(ship_items),
+#     type="to_agent"
+# )
+
+# clear_template_except_header(to_agent_output_template)
+
+# fill_template(to_agent_output_template, 
+#               ship_items, 
+#               dict_builder=lambda item: item.to_dict()
+# )
+
+
+# ####### 新模板 #########
+# to_fedex_output_template = copy_template_with_custom_name(
+#     fedex_template_excel,
+#     output_dir,
+#     shipitem_count=len(ship_items),
+#     type="to_fedex"
+# )
+
+# clear_template_except_header(to_fedex_output_template)
+
+# fill_template(
+#     to_fedex_output_template,
+#     ship_items,
+#     dict_builder=lambda item: item.to_fedex_dict()
+# )
+
+####### xiaolong 新模板 #########
+xiaolong_template_excel = BASE_DIR / "xiaolong_template.xlsx"
+to_xiaolong_output_template = copy_template_with_custom_name(
+    xiaolong_template_excel,
     output_dir,
     shipitem_count=len(ship_items),
-    type="to_agent"
+    type="to_xiaolong"
 )
 
-clear_template_except_header(to_agent_output_template)
-
-fill_template(to_agent_output_template, 
-              ship_items, 
-              dict_builder=lambda item: item.to_dict()
-)
-
-
-####### 新模板 #########
-to_fedex_output_template = copy_template_with_custom_name(
-    fedex_template_excel,
-    output_dir,
-    shipitem_count=len(ship_items),
-    type="to_fedex"
-)
-
-clear_template_except_header(to_fedex_output_template)
+clear_template_except_header(to_xiaolong_output_template)
 
 fill_template(
-    to_fedex_output_template,
+    to_xiaolong_output_template,
     ship_items,
-    dict_builder=lambda item: item.to_fedex_dict()
+    dict_builder=lambda item: item.to_xiaolong_dict()
 )
 
 print("模板已成功更新并覆盖旧数据")
+print(f"已生成 {len(ship_items)} 条订单数据到以下模板:")
+# print(f"  - {to_agent_output_template}")
+# print(f"  - {to_fedex_output_template}")
+print(f"  - {to_xiaolong_output_template}")

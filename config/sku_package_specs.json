@@ -13,5 +13,20 @@
   "RCW2": {"weight": 0.3, "length": 25, "width": 20, "height": 3, "package_count": 1},
   "RCG2": {"weight": 0.3, "length": 25, "width": 20, "height": 3, "package_count": 1},
   "CTB": {"weight": 0.3, "length": 25, "width": 20, "height": 3, "package_count": 1},
-  "RB1": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1}
+  "RB1": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "CT": {"weight": 0.3, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "TLL200": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "TLS200": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "PHRB": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "PB": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "CLS": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "CNC": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "CDL": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "CLB": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "SSB": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "RCBXS2": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "RCWXS2": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "RCPXS2": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "GT": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1},
+  "BOX": {"weight": 1, "length": 35, "width": 7, "height": 7, "package_count": 1}
 }
