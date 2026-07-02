@@ -26,6 +26,14 @@ class OrderItem:
     def __init__(self, order_no: str):
         self.order_no = order_no
         self.sub_orders: List[SubOrderItem] = []
+        # 收货地址信息
+        self.recipient_name: str = ""
+        self.phone: str = ""
+        self.postal_code: str = ""
+        self.address1: str = ""
+        self.address2: str = ""
+        self.city: str = ""
+        self.province: str = ""
 
     def add_sub_order(self, sub_order: SubOrderItem):
         self.sub_orders.append(sub_order)
@@ -39,5 +47,7 @@ class OrderItem:
     def __repr__(self):
         return (
             f"OrderItem(order_no={self.order_no}, "
+            f"recipient_name={self.recipient_name}, "
+            f"postal_code={self.postal_code}, "
             f"sub_orders={self.sub_orders})"
         )

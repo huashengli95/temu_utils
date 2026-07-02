@@ -27,7 +27,16 @@ def load_temu_orders(temu_order_excel_path: str) -> Dict[str, OrderItem]:
         order_no = row["订单号"]
 
         if order_no not in orders:
-            orders[order_no] = OrderItem(order_no)
+            order_item = OrderItem(order_no)
+            # 加载地址信息
+            order_item.recipient_name = row.get("收货人姓名", "").strip()
+            order_item.phone = row.get("收货人联系方式", "").strip()
+            order_item.postal_code = row.get("收货地址邮编", "").strip()
+            order_item.address1 = row.get("详细地址1", "").strip()
+            order_item.address2 = row.get("详细地址2", "").strip()
+            order_item.city = row.get("城市", "").strip()
+            order_item.province = row.get("省份", "").strip()
+            orders[order_no] = order_item
 
         sub = SubOrderItem(
             sub_order_no=row["子订单号"],
