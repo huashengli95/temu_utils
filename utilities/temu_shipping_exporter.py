@@ -16,7 +16,7 @@ def export_temu_shipping_excel(
                 "子订单号": sub.sub_order_no,
                 "商品件数": sub.quantity,
                 "跟踪单号": tracking_no,
-                "物流承运商": "FedEx",
+                "物流承运商": "canadapost",
                 "发货仓库名称": "Deerchase court"
             })
 
